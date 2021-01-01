@@ -8,19 +8,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// loadHistoryData 載入歷史數據, K棒
 // interval 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M
 func (a *Advisor) loadHistoryData(symbol string) {
+	intervals := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"}
 	client := binance.NewClient(a.apiKey, a.secretKey)
-	klines, err := client.NewKlinesService().
+	for _, interval := range intervals {
+		klines, err := client.NewKlinesService().
 		Symbol(symbol).
-		Interval("15m").
+		Interval(interval).
 		Limit(1000).
 		Do(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, k := range klines {
-		fmt.Println(k)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i := len(klines) - 1; i >= 0; i-- {
+			a.kline[interval] = append(a.kline[interval] , klines[i])
+		}
 	}
 }
 

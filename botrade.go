@@ -1,6 +1,7 @@
 package botrade
 
 import (
+	"github.com/adshao/go-binance/v2"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,6 +30,7 @@ func NewBot(apiKey, secretKey string) *Bot {
 			apiKey: apiKey,
 			secretKey: secretKey,
 			tick: make(chan struct{}),
+			kline: make(map[string][]*binance.Kline),
 		},
 	}
 }
