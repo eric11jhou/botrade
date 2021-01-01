@@ -2,7 +2,6 @@ package botrade
 
 import (
 	"fmt"
-	"time"
 	"github.com/adshao/go-binance/v2"
 )
 
@@ -26,19 +25,18 @@ func (a *Advisor) startTick_(symbol string) {
 	errHandler := func(err error) {
 		fmt.Println(err)
 	}
-	doneC, stopC, err := binance.WsKlineServe(symbol, "1m", wsKlineHandler, errHandler)
+	_, _, err := binance.WsKlineServe(symbol, "1m", wsKlineHandler, errHandler)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	// use stopC to exit
-	go func() {
-		time.Sleep(5 * time.Second)
-		stopC <- struct{}{}
-	}()
+	// go func() {
+	// 	time.Sleep(5 * time.Second)
+	// 	stopC <- struct{}{}
+	// }()
 	// remove this if you do not want to be blocked here
-	<-doneC
-
+	// <-doneC
 }
 
 func (a *Advisor) startTickTesting(symbol string) {
