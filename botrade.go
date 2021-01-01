@@ -1,5 +1,14 @@
 package botrade
 
+import (
+	log "github.com/sirupsen/logrus"
+)
+
+func init() {
+	log.SetReportCaller(true)
+	log.SetFormatter(&log.JSONFormatter{})
+}
+
 // Strategy 策略需實作的方法
 type Strategy interface {
 	SetAdvisor(*Advisor)
