@@ -28,7 +28,7 @@ func (b *Bot) Trading(symbol string, s Strategy) {
 	b.advisor.trade = true
 	s.SetAdvisor(b.advisor)
 	s.OnInit()
-	go b.advisor.startTick(symbol)
+	b.advisor.startTick(symbol)
 	// for {
 	// 	<- b.advisor.tick
 	// 	s.OnTick()

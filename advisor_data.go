@@ -19,24 +19,34 @@ func (a *Advisor) startTick(symbol string) {
 }
 
 func (a *Advisor) startTick_(symbol string) {
-	wsKlineHandler := func(event *binance.WsKlineEvent ) {
-		fmt.Println(event)
-	}
-	errHandler := func(err error) {
-		fmt.Println(err)
-	}
-	_, _, err := binance.WsKlineServe(symbol, "1m", wsKlineHandler, errHandler)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	// use stopC to exit
-	// go func() {
-	// 	time.Sleep(5 * time.Second)
-	// 	stopC <- struct{}{}
-	// }()
-	// remove this if you do not want to be blocked here
-	// <-doneC
+	go func(){
+		{
+			wsKlineHandler := func(event *binance.WsKlineEvent) {
+				fmt.Println(event)
+			}
+			errHandler := func(err error) {
+				fmt.Println(err)
+			}
+			_, _, err := binance.WsKlineServe(symbol, "1m", wsKlineHandler, errHandler)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		}
+		{
+			wsMarketStatHandler := func(event *binance.WsMarketStatEvent) {
+				fmt.Println(event)
+			}
+			errHandler := func(err error) {
+				fmt.Println(err)
+			}
+			_, _, err := binance.WsMarketStatServe(symbol, wsMarketStatHandler, errHandler)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		}
+	}()
 }
 
 func (a *Advisor) startTickTesting(symbol string) {
