@@ -20,6 +20,7 @@ func (a *Advisor) startTick(symbol string) {
 }
 
 func (a *Advisor) startTick_(symbol string) {
+	fmt.Println("start")
 	wsMarketStathHandler := func(event *binance.WsMarketStatEvent) {
 		fmt.Println(event)
 	}
