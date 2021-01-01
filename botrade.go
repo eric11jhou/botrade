@@ -1,7 +1,6 @@
 package botrade
 
 import (
-	"fmt"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,11 +37,11 @@ func NewBot(apiKey, secretKey string) *Bot {
 func (b *Bot) Trading(symbol string, s Strategy) {
 	b.advisor.trade = true
 	s.SetAdvisor(b.advisor)
+	b.advisor.loadHistoryData(symbol)
 	s.OnInit()
 	b.advisor.startTick(symbol)
 	for {
 		<- b.advisor.tick
-		fmt.Println(".")
 		s.OnTick()
 	}
 }
@@ -51,8 +50,9 @@ func (b *Bot) Trading(symbol string, s Strategy) {
 func (b *Bot) Testing(symbol string, s Strategy) {
 	b.advisor.trade = false
 	s.SetAdvisor(b.advisor)
+	b.advisor.loadHistoryData(symbol)
 	s.OnInit()
-	go b.advisor.startTick(symbol)
+	b.advisor.startTick(symbol)
 	for {
 		<- b.advisor.tick
 		s.OnTick()

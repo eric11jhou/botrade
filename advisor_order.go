@@ -48,6 +48,23 @@ func (a *Advisor) orderListTesting(symbol string) ([]*binance.Order, error) {
 	return nil, nil
 }
 
+// 取得所有掛單
+func (a *Advisor) OpenOrderList(symbol string) ([]*binance.Order, error) {
+	if a.trade {
+		return a.openOrderList(symbol)
+	} else {
+		return a.openOrderListTesting(symbol)
+	}
+}
+
+func (a *Advisor) openOrderList(symbol string) ([]*binance.Order, error) {
+	return nil, nil
+}
+
+func (a *Advisor) openOrderListTesting(symbol string) ([]*binance.Order, error) {
+	return nil, nil
+}
+
 // 取得訂單
 func (a *Advisor) OrderGet(symbol string, orderId int64) (*binance.Order, error) {
 	if a.trade {

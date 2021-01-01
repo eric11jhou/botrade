@@ -2,6 +2,7 @@ package botrade
 
 import (
 	"fmt"
+	"context"
 	"strconv"
 	"github.com/adshao/go-binance/v2"
 	log "github.com/sirupsen/logrus"
@@ -9,7 +10,18 @@ import (
 
 // interval 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M
 func (a *Advisor) loadHistoryData(symbol string) {
-
+	client := binance.NewClient(a.apiKey, a.secretKey)
+	klines, err := client.NewKlinesService().
+		Symbol(symbol).
+		Interval("15m").
+		Limit(1000).
+		Do(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, k := range klines {
+		fmt.Println(k)
+	}
 }
 
 func (a *Advisor) startTick(symbol string) {
@@ -61,10 +73,4 @@ func (a *Advisor) startTick_(symbol string) {
 
 func (a *Advisor) startTickTesting(symbol string) {
 	
-}
-
-// 取得K棒高點
-// shift: 第幾根K棒
-func (a *Advisor) High(shift int) float64 {
-	return float64(shift)+1.1
 }
