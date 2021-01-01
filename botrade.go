@@ -38,10 +38,10 @@ func (b *Bot) Trading(symbol string, s Strategy) {
 	s.SetAdvisor(b.advisor)
 	s.OnInit()
 	b.advisor.startTick(symbol)
-	// for {
-	// 	<- b.advisor.tick
-	// 	s.OnTick()
-	// }
+	for {
+		<- b.advisor.tick
+		s.OnTick()
+	}
 	s.OnDeinit()
 }
 
