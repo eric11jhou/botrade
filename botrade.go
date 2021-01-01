@@ -1,6 +1,7 @@
 package botrade
 
 import (
+	"fmt"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,6 +29,7 @@ func NewBot(apiKey, secretKey string) *Bot {
 		advisor: &Advisor{
 			apiKey: apiKey,
 			secretKey: secretKey,
+			tick: make(chan struct{}),
 		},
 	}
 }
@@ -40,9 +42,9 @@ func (b *Bot) Trading(symbol string, s Strategy) {
 	b.advisor.startTick(symbol)
 	for {
 		<- b.advisor.tick
+		fmt.Println(".")
 		s.OnTick()
 	}
-	s.OnDeinit()
 }
 
 // Testing 開始回測
