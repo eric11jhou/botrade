@@ -20,14 +20,13 @@ func (a *Advisor) startTick(symbol string) {
 }
 
 func (a *Advisor) startTick_(symbol string) {
-	fmt.Println("start")
-	wsMarketStathHandler := func(event *binance.WsMarketStatEvent) {
+	wsKlineHandler := func(event *binance.WsKlineEvent ) {
 		fmt.Println(event)
 	}
 	errHandler := func(err error) {
 		fmt.Println(err)
 	}
-	doneC, stopC, err := binance.WsMarketStatServe(symbol, wsMarketStathHandler, errHandler)
+	doneC, stopC, err := binance.WsKlineServe(symbol, "1m", wsKlineHandler, errHandler)
 	if err != nil {
 		fmt.Println(err)
 		return
