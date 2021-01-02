@@ -27,7 +27,22 @@ func (a *Advisor) Bid() float64 {
 	return a.bid
 }
 
-// 取得K棒高點
+// 取得K棒開盤價
+// shift: 第幾根K棒
+func (a *Advisor) Open(interval string, shift int) float64 {
+	if len(a.kline[interval]) <= shift {
+		log.Error("out of range")
+		return 0
+	}
+	if open, err := strconv.ParseFloat(a.kline[interval][shift].Open, 64); err != nil {
+		log.Error(err)
+		return 0
+	} else {
+		return open
+	}
+}
+
+// 取得K棒最高點
 // shift: 第幾根K棒
 func (a *Advisor) High(interval string, shift int) float64 {
 	if len(a.kline[interval]) <= shift {
@@ -40,4 +55,94 @@ func (a *Advisor) High(interval string, shift int) float64 {
 	} else {
 		return high
 	}
+}
+
+// 取得K棒最低點
+// shift: 第幾根K棒
+func (a *Advisor) Low(interval string, shift int) float64 {
+	if len(a.kline[interval]) <= shift {
+		log.Error("out of range")
+		return 0
+	}
+	if low, err := strconv.ParseFloat(a.kline[interval][shift].Low, 64); err != nil {
+		log.Error(err)
+		return 0
+	} else {
+		return low
+	}
+}
+
+// 取得K棒收盤價
+// shift: 第幾根K棒
+func (a *Advisor) Close(interval string, shift int) float64 {
+	if len(a.kline[interval]) <= shift {
+		log.Error("out of range")
+		return 0
+	}
+	if close, err := strconv.ParseFloat(a.kline[interval][shift].Close, 64); err != nil {
+		log.Error(err)
+		return 0
+	} else {
+		return close
+	}
+}
+
+// 取得K棒成交量
+// shift: 第幾根K棒
+func (a *Advisor) Volume(interval string, shift int) float64 {
+	if len(a.kline[interval]) <= shift {
+		log.Error("out of range")
+		return 0
+	}
+	if volume, err := strconv.ParseFloat(a.kline[interval][shift].Volume, 64); err != nil {
+		log.Error(err)
+		return 0
+	} else {
+		return volume
+	}
+}
+
+// 取得K棒開盤時間
+// shift: 第幾根K棒
+func (a *Advisor) OpenTime(interval string, shift int) int64 {
+	if len(a.kline[interval]) <= shift {
+		log.Error("out of range")
+		return 0
+	}
+	return a.kline[interval][shift].OpenTime
+}
+
+// 取得K棒收盤時間
+// shift: 第幾根K棒
+func (a *Advisor) CloseTime(interval string, shift int) int64 {
+	if len(a.kline[interval]) <= shift {
+		log.Error("out of range")
+		return 0
+	}
+	return a.kline[interval][shift].CloseTime
+}
+
+// 取得K棒成交額
+// shift: 第幾根K棒
+func (a *Advisor) QuoteAssetVolume(interval string, shift int) float64 {
+	if len(a.kline[interval]) <= shift {
+		log.Error("out of range")
+		return 0
+	}
+	if quoteAssetVolume, err := strconv.ParseFloat(a.kline[interval][shift].QuoteAssetVolume, 64); err != nil {
+		log.Error(err)
+		return 0
+	} else {
+		return quoteAssetVolume
+	}
+}
+
+// 取得K棒成交筆數
+// shift: 第幾根K棒
+func (a *Advisor) TradeNum(interval string, shift int) int64 {
+	if len(a.kline[interval]) <= shift {
+		log.Error("out of range")
+		return 0
+	}
+	return a.kline[interval][shift].TradeNum
 }
