@@ -1,6 +1,7 @@
 package botrade
 
 import (
+	"fmt"
 	"context"
 	"strconv"
 	"github.com/adshao/go-binance/v2"
@@ -40,7 +41,9 @@ func (a *Advisor) startTick_(symbol string) {
 		{
 			wsKlineHandler := func(event *binance.WsKlineEvent) {
 				for k, v := range a.kline {
+					fmt.Printf("%+v %+v\n", event.Kline.StartTime, v[0].CloseTime)
 					if event.Kline.StartTime > v[0].CloseTime { // 此interval已收盤
+						fmt.Printf("next\n")
 						client := binance.NewClient(a.apiKey, a.secretKey)
 						klines, err := client.NewKlinesService().
 						Symbol(symbol).
