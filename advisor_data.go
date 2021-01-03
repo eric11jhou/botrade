@@ -1,7 +1,6 @@
 package botrade
 
 import (
-	"fmt"
 	"context"
 	"strconv"
 	"github.com/adshao/go-binance/v2"
@@ -40,7 +39,55 @@ func (a *Advisor) startTick_(symbol string) {
 	go func(){
 		{
 			wsKlineHandler := func(event *binance.WsKlineEvent) {
-				fmt.Println(event)
+				for k, v := range a.kline {
+					if event.Kline.StartTime > v[0].CloseTime { // 此interval已收盤
+						client := binance.NewClient(a.apiKey, a.secretKey)
+						klines, err := client.NewKlinesService().
+						Symbol(symbol).
+						Interval(k).
+						Limit(5).
+						Do(context.Background())
+						if err != nil {
+							log.Error(err)
+						}
+						for _, newKline := range klines {
+							if newKline.OpenTime > v[0].CloseTime {
+								v = append([]*binance.Kline{newKline}, v...)
+								continue
+							}
+							for i, kline := range v {
+								if kline.OpenTime == newKline.OpenTime {
+									v[i] = newKline
+								}
+							}
+						}
+					} else if event.Kline.StartTime >= v[0].OpenTime { // 此interval目前K棒尚未收盤
+						// 更新收盤價
+						v[0].Close = event.Kline.Close
+						// 更新最高價
+						if newHigh, err := strconv.ParseFloat(event.Kline.High, 64); err == nil {
+							if high, err := strconv.ParseFloat(v[0].High, 64); err == nil && high < newHigh {
+								v[0].High = event.Kline.High
+							}
+						}
+						// 更新最低價
+						if newLow, err := strconv.ParseFloat(event.Kline.Low, 64); err == nil {
+							if low, err := strconv.ParseFloat(v[0].Low, 64); err == nil && low > newLow {
+								v[0].Low = event.Kline.Low
+							}
+						}
+						// 更新交易量
+						if event.Kline.IsFinal {
+							if k != "1m" {
+								if newVolume, err := strconv.ParseFloat(event.Kline.Volume, 64); err == nil {
+									if volume, err := strconv.ParseFloat(v[0].Volume, 64); err == nil {
+										v[0].Volume = strconv.FormatFloat(volume + newVolume, 'f', -1, 64)
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 			errHandler := func(err error) {
 				log.Error(err)
