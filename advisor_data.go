@@ -41,9 +41,7 @@ func (a *Advisor) startTick_(symbol string) {
 		{
 			wsKlineHandler := func(event *binance.WsKlineEvent) {
 				for k, v := range a.kline {
-					fmt.Printf("%+v %+v\n", event.Kline.StartTime, v[0].CloseTime)
 					if event.Kline.StartTime > v[0].CloseTime { // 此interval已收盤
-						fmt.Printf("next\n")
 						client := binance.NewClient(a.apiKey, a.secretKey)
 						klines, err := client.NewKlinesService().
 						Symbol(symbol).
@@ -52,10 +50,13 @@ func (a *Advisor) startTick_(symbol string) {
 						Do(context.Background())
 						if err != nil {
 							log.Error(err)
+							continue
 						}
 						for _, newKline := range klines {
 							if newKline.OpenTime > v[0].CloseTime {
+								fmt.Printf("ok %+v -> %+v", v[0].OpenTime, newKline.OpenTime)
 								v = append([]*binance.Kline{newKline}, v...)
+								fmt.Printf("then [0]%+v , [1]%+v", v[0].OpenTime, v[1].OpenTime)
 								continue
 							}
 							for i, kline := range v {
