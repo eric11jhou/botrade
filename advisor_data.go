@@ -55,20 +55,23 @@ func (a *Advisor) startTick_(symbol string) {
 						for _, newKline := range klines {
 							if newKline.OpenTime > v[0].CloseTime {
 								fmt.Printf("ok %+v -> %+v\n", v[0].OpenTime, newKline.OpenTime)
-								v = append([]*binance.Kline{newKline}, v...)
+								a.kline[k] = append([]*binance.Kline{newKline}, v...)
 								fmt.Printf("then [0]%+v , [1]%+v\n", v[0].OpenTime, v[1].OpenTime)
 								fmt.Printf("end [0]%+v , [1]%+v\n", a.kline[k][0].OpenTime, a.kline[k][1].OpenTime)
 								continue
 							}
 							for i, kline := range v {
 								if kline.OpenTime == newKline.OpenTime {
-									v[i] = newKline
+									a.kline[k][i] = newKline
 								}
 							}
 						}
 					} else if event.Kline.StartTime >= v[0].OpenTime { // 此interval目前K棒尚未收盤
 						// 更新收盤價
+						fmt.Printf("%+v\n",v[0].Close)
 						v[0].Close = event.Kline.Close
+						fmt.Printf("%+v\n",v[0].Close)
+						fmt.Printf("--%+v\n",a.kline[k][0].Close)
 						// 更新最高價
 						if newHigh, err := strconv.ParseFloat(event.Kline.High, 64); err == nil {
 							if high, err := strconv.ParseFloat(v[0].High, 64); err == nil && high < newHigh {
