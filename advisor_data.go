@@ -78,7 +78,7 @@ func (a *Advisor) startTick_(symbol string) {
 						}
 						// 更新交易量
 						if event.Kline.IsFinal {
-							if k != "1m" {
+							if event.Kline.EndTime != v[0].CloseTime {
 								if newVolume, err := strconv.ParseFloat(event.Kline.Volume, 64); err == nil {
 									if volume, err := strconv.ParseFloat(v[0].Volume, 64); err == nil {
 										v[0].Volume = strconv.FormatFloat(volume + newVolume, 'f', -1, 64)
