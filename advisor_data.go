@@ -79,11 +79,20 @@ func (a *Advisor) startTick_(symbol string) {
 						// 更新交易量
 						if event.Kline.IsFinal {
 							if event.Kline.EndTime != v[0].CloseTime {
+								// 成交量
 								if newVolume, err := strconv.ParseFloat(event.Kline.Volume, 64); err == nil {
 									if volume, err := strconv.ParseFloat(v[0].Volume, 64); err == nil {
 										v[0].Volume = strconv.FormatFloat(volume + newVolume, 'f', -1, 64)
 									}
 								}
+								// 成交額
+								if newQuoteVolume, err := strconv.ParseFloat(event.Kline.QuoteVolume, 64); err == nil {
+									if quoteVolume, err := strconv.ParseFloat(v[0].QuoteAssetVolume, 64); err == nil {
+										v[0].QuoteAssetVolume = strconv.FormatFloat(quoteVolume + newQuoteVolume, 'f', -1, 64)
+									}
+								}
+								// 成交筆數
+								v[0].TradeNum += event.Kline.TradeNum
 							}
 						}
 					}
