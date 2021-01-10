@@ -49,14 +49,14 @@ func (b *Bot) Trading(symbol string, s Strategy) {
 }
 
 // Testing 開始回測
-func (b *Bot) Testing(symbol string, s Strategy) {
+func (b *Bot) Testing(symbol string, s Strategy, startTime, endTime int64) {
 	b.advisor.trade = false
 	s.SetAdvisor(b.advisor)
-	b.advisor.loadHistoryData(symbol)
-	s.OnInit()
-	b.advisor.startTick(symbol)
-	for {
-		<- b.advisor.tick
-		s.OnTick()
-	}
+	b.advisor.loadHistoryDataTesting(symbol, startTime, endTime)
+	// s.OnInit()
+	// b.advisor.startTickTesting(symbol, startTime, endTime)
+	// for {
+	// 	<- b.advisor.tick
+	// 	s.OnTick()
+	// }
 }

@@ -1,6 +1,8 @@
 package botrade
 
 import (
+	"fmt"
+	"time"
 	"context"
 	"strconv"
 	"github.com/adshao/go-binance/v2"
@@ -27,15 +29,41 @@ func (a *Advisor) loadHistoryData(symbol string) {
 	}
 }
 
-func (a *Advisor) startTick(symbol string) {
-	if a.trade {
-		a.startTick_(symbol)
-	} else {
-		a.startTickTesting(symbol)
+func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64) {
+	intervals := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"}
+	client := binance.NewClient(a.apiKey, a.secretKey)
+	for _, interval := range intervals {
+		startTime_ := startTime
+		fmt.Printf("開始下載 %s K線", interval)
+		klinesTemp := make([]*binance.Kline, 0)
+		ticker := time.Tick(time.Second)
+		for {
+			klines, err := client.NewKlinesService().
+			Symbol(symbol).
+			Interval(interval).
+			StartTime(startTime_).
+			EndTime(endTime).
+			Limit(1000).
+			Do(context.Background())
+			if err != nil {
+				log.Fatal(err)
+			}
+			if len(klines) == 0 {
+				break
+			}
+			fmt.Print(".")
+			for _ , kline := range klines {
+				klinesTemp = append([]*binance.Kline{kline}, klinesTemp...)
+			}
+			startTime_ = klines[len(klines)-1].CloseTime + 1
+			<- ticker
+		}
+		a.kline[interval] = klinesTemp
+		fmt.Printf("完成，共%d筆\n", len(a.kline[interval]))
 	}
 }
 
-func (a *Advisor) startTick_(symbol string) {
+func (a *Advisor) startTick(symbol string) {
 	go func(){
 		{
 			wsKlineHandler := func(event *binance.WsKlineEvent) {
@@ -131,6 +159,9 @@ func (a *Advisor) startTick_(symbol string) {
 	}()
 }
 
-func (a *Advisor) startTickTesting(symbol string) {
-	
+func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
+	// 抓取歷史所有K線(先載入起始報價之前數據,其餘暫存)
+	// 每個1m收盤價(支援每個報價? 時戳:價格) 觸發tick -> 更新數據: 
+	// if tick.time > kline[0].CloseTime -> 更新此K線(從暫存載入)
+	// else 更新kline[0]的數據(最高最低收盤價,量,額,筆數)
 }
