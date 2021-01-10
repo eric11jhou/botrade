@@ -2,7 +2,6 @@ package botrade
 
 import (
 	"fmt"
-	"time"
 	"context"
 	"strconv"
 	"github.com/adshao/go-binance/v2"
@@ -29,25 +28,25 @@ func (a *Advisor) loadHistoryData(symbol string) {
 	}
 }
 
+// 抓取歷史所有K線至暫存
 func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64) {
 	intervals := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"}
 	client := binance.NewClient(a.apiKey, a.secretKey)
 	
 	requestTime := 0
 	for _, interval := range intervals {
+		startTime_ := startTime - 1000*60*60*24*30*6 // 抓取回測起始時間多久之前的K棒
 		total := (endTime - startTime) / 60000 / a.getMin(interval) 
-		startTime_ := startTime
 		status := fmt.Sprintf("(%d/%d)", 0, total)
-		fmt.Printf("下載 %s\tK線: %20s", interval, status)
+		fmt.Printf("下載 %-4sK線: %20s", interval, status)
 		klinesTemp := make([]*binance.Kline, 0)
-		ticker := time.Tick(time.Second)
 		for {
 			klines, err := client.NewKlinesService().
 			Symbol(symbol).
 			Interval(interval).
 			StartTime(startTime_).
 			EndTime(endTime).
-			Limit(1000).
+			Limit(10).
 			Do(context.Background())
 			if err != nil {
 				log.Fatal(err)
@@ -56,20 +55,20 @@ func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64
 			if len(klines) == 0 {
 				break
 			}
-			for _ , kline := range klines {
-				klinesTemp = append([]*binance.Kline{kline}, klinesTemp...)
-			}
+			klinesTemp = append(klinesTemp, klines...)
 			startTime_ = klines[len(klines)-1].CloseTime + 1
 			current := (endTime - startTime_) / 60000 / a.getMin(interval) 
 			status := fmt.Sprintf("(%d/%d)", total-current, total)
-			fmt.Printf("\r下載 %s\tK線: %20s", interval, status)
-			if requestTime > 10 {
-				<- ticker
-				requestTime = 0
-			}
+			fmt.Printf("\r下載 %-4sK線: %20s", interval, status)
 		}
-		a.kline[interval] = klinesTemp
-		fmt.Printf("\r下載 %s\tK線: 完成，共%d筆%-30s\n", interval, len(a.kline[interval]), "")
+		a.klineTemp[interval] = klinesTemp
+		for i := range a.klineTemp[interval] {
+			if i == len(a.klineTemp[interval]) - 1 {
+				break
+			}
+			fmt.Print(a.klineTemp[interval][i+1].OpenTime - a.klineTemp[interval][i].OpenTime)
+		}
+		fmt.Printf("\r下載 %-4sK線: 完成，共%d筆%-30s\n", interval, len(a.klineTemp[interval]), "")
 	}
 }
 
@@ -207,7 +206,13 @@ func (a *Advisor) startTick(symbol string) {
 }
 
 func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
-	// 抓取歷史所有K線(先載入起始報價之前數據,其餘暫存)
+	go func(){
+		for _, klineTemp := range a.klineTemp["1m"] {
+			if klineTemp.CloseTime > startTime {
+
+			}
+		}
+	}()
 	// 每個1m收盤價(支援每個報價? 時戳:價格) 觸發tick -> 更新數據: 
 	// if tick.time > kline[0].CloseTime -> 更新此K線(從暫存載入)
 	// else 更新kline[0]的數據(最高最低收盤價,量,額,筆數)

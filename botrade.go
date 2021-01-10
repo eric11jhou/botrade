@@ -31,6 +31,7 @@ func NewBot(apiKey, secretKey string) *Bot {
 			secretKey: secretKey,
 			tick: make(chan struct{}),
 			kline: make(map[string][]*binance.Kline),
+			klineTemp: make(map[string][]*binance.Kline),
 		},
 	}
 }
@@ -53,7 +54,7 @@ func (b *Bot) Testing(symbol string, s Strategy, startTime, endTime int64) {
 	b.advisor.trade = false
 	s.SetAdvisor(b.advisor)
 	b.advisor.loadHistoryDataTesting(symbol, startTime, endTime)
-	// s.OnInit()
+	s.OnInit()
 	// b.advisor.startTickTesting(symbol, startTime, endTime)
 	// for {
 	// 	<- b.advisor.tick
