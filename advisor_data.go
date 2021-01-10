@@ -66,7 +66,7 @@ func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64
 			if i == len(a.klineTemp[interval]) - 1 {
 				break
 			}
-			fmt.Print(a.klineTemp[interval][i+1].OpenTime - a.klineTemp[interval][i].OpenTime)
+			fmt.Print((a.klineTemp[interval][i+1].OpenTime - a.klineTemp[interval][i].OpenTime)/60000)
 		}
 		fmt.Printf("\r下載 %-4sK線: 完成，共%d筆%-30s\n", interval, len(a.klineTemp[interval]), "")
 	}
