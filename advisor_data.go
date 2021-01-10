@@ -32,9 +32,11 @@ func (a *Advisor) loadHistoryData(symbol string) {
 func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64) {
 	intervals := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"}
 	client := binance.NewClient(a.apiKey, a.secretKey)
+	
 	for _, interval := range intervals {
+		total := (endTime - startTime) / 60000 / a.getMin(interval) 
 		startTime_ := startTime
-		fmt.Printf("開始下載 %s K線", interval)
+		fmt.Printf("下載 %s K線: (%d/%d)", interval, 0, total)
 		klinesTemp := make([]*binance.Kline, 0)
 		ticker := time.Tick(time.Second)
 		for {
@@ -51,15 +53,53 @@ func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64
 			if len(klines) == 0 {
 				break
 			}
-			fmt.Print(".")
 			for _ , kline := range klines {
 				klinesTemp = append([]*binance.Kline{kline}, klinesTemp...)
 			}
 			startTime_ = klines[len(klines)-1].CloseTime + 1
+			current := (endTime - startTime_) / 60000 / a.getMin(interval) 
+			fmt.Printf("\r下載 %s K線: (%d/%d)", interval, current, total)
 			<- ticker
 		}
 		a.kline[interval] = klinesTemp
-		fmt.Printf("完成，共%d筆\n", len(a.kline[interval]))
+		fmt.Printf("\r下載 %s K線: 完成，共%d筆\n", interval, len(a.kline[interval]))
+	}
+}
+
+func (a *Advisor) getMin(interval string) int64 {
+	switch interval {
+	case "1m":
+		return 1;
+	case "3m":
+		return 3;
+	case "5m":
+		return 5;
+	case "15m":
+		return 15;
+	case "30m":
+		return 30;
+	case "1h":
+		return 60;
+	case "2h":
+		return 120;
+	case "4h":
+		return 240;
+	case "6h":
+		return 360;
+	case "8h":
+		return 480;
+	case "12h":
+		return 720;
+	case "1d":
+		return 1440;
+	case "3d":
+		return 1440*3;
+	case "1w":
+		return 1440*7;
+	case "1M":
+		return 1440*30;
+	default:
+		return 1;
 	}
 }
 
