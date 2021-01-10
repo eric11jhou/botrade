@@ -36,7 +36,8 @@ func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64
 	for _, interval := range intervals {
 		total := (endTime - startTime) / 60000 / a.getMin(interval) 
 		startTime_ := startTime
-		fmt.Printf("下載 %s K線: (%d/%d)", interval, 0, total)
+		status := fmt.Sprintf("(%d/%d)", 0, total)
+		fmt.Printf("下載 %s K線: %20s", interval, status)
 		klinesTemp := make([]*binance.Kline, 0)
 		ticker := time.Tick(time.Second)
 		for {
@@ -58,11 +59,12 @@ func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64
 			}
 			startTime_ = klines[len(klines)-1].CloseTime + 1
 			current := (endTime - startTime_) / 60000 / a.getMin(interval) 
-			fmt.Printf("\r下載 %s K線: (%d/%d)", interval, current, total)
+			status := fmt.Sprintf("(%d/%d)", total-current, total)
+			fmt.Printf("\r下載 %s K線: %20s", interval, status)
 			<- ticker
 		}
 		a.kline[interval] = klinesTemp
-		fmt.Printf("\r下載 %s K線: 完成，共%d筆\n", interval, len(a.kline[interval]))
+		fmt.Printf("\r下載 %s K線: 完成，共%d筆%-30s\n", interval, len(a.kline[interval]), "")
 	}
 }
 
