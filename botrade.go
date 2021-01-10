@@ -55,9 +55,9 @@ func (b *Bot) Testing(symbol string, s Strategy, startTime, endTime int64) {
 	s.SetAdvisor(b.advisor)
 	b.advisor.loadHistoryDataTesting(symbol, startTime, endTime)
 	s.OnInit()
-	// b.advisor.startTickTesting(symbol, startTime, endTime)
-	// for {
-	// 	<- b.advisor.tick
-	// 	s.OnTick()
-	// }
+	b.advisor.startTickTesting(symbol, startTime, endTime)
+	for {
+		<- b.advisor.tick
+		s.OnTick()
+	}
 }

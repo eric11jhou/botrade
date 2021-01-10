@@ -8,10 +8,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var intervals = []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"}
 // loadHistoryData 載入歷史數據, K棒
-// interval 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M
 func (a *Advisor) loadHistoryData(symbol string) {
-	intervals := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"}
 	client := binance.NewClient(a.apiKey, a.secretKey)
 	for _, interval := range intervals {
 		klines, err := client.NewKlinesService().
@@ -30,12 +29,9 @@ func (a *Advisor) loadHistoryData(symbol string) {
 
 // 抓取歷史所有K線至暫存
 func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64) {
-	intervals := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"}
 	client := binance.NewClient(a.apiKey, a.secretKey)
-	
-	requestTime := 0
 	for _, interval := range intervals {
-		startTime_ := startTime// - 1000*60*60*24*30*6 // 抓取回測起始時間多久之前的K棒
+		startTime_ := startTime - 1000*60*60*24*30*6 // 抓取回測起始時間多久之前的K棒
 		total := (endTime - startTime_) / 60000 / a.getMin(interval) 
 		status := fmt.Sprintf("(%d/%d)", 0, total)
 		fmt.Printf("下載 %-4sK線: %20s", interval, status)
@@ -51,7 +47,6 @@ func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64
 			if err != nil {
 				log.Fatal(err)
 			}
-			requestTime++
 			if len(klines) == 0 {
 				break
 			}
@@ -62,12 +57,6 @@ func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64
 			fmt.Printf("\r下載 %-4sK線: %20s", interval, status)
 		}
 		a.klineTemp[interval] = klinesTemp
-		for i := range a.klineTemp[interval] {
-			if i == len(a.klineTemp[interval]) - 1 {
-				break
-			}
-			fmt.Print((a.klineTemp[interval][i+1].OpenTime - a.klineTemp[interval][i].OpenTime)/60000)
-		}
 		fmt.Printf("\r下載 %-4sK線: 完成，共%d筆%-30s\n", interval, len(a.klineTemp[interval]), "")
 	}
 }
@@ -205,12 +194,58 @@ func (a *Advisor) startTick(symbol string) {
 	}()
 }
 
+// 報價
+type quote struct {
+	ask float64
+	bid float64
+	time int64
+}
+
 func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
+	quoteChan := make(chan *quote)
+	// 報價源，可換為其他資料
 	go func(){
 		for _, klineTemp := range a.klineTemp["1m"] {
-			if klineTemp.CloseTime > startTime {
-
+			if !(klineTemp.OpenTime >= startTime && klineTemp.OpenTime <= endTime) {
+				continue
 			}
+			ask, err := strconv.ParseFloat(klineTemp.Close, 64)
+			if err != nil {
+				log.Panic("quote error")
+			}
+			bid, err := strconv.ParseFloat(klineTemp.Close, 64)
+			if err != nil {
+				log.Panic("quote error")
+			}
+			quoteChan <- &quote{
+				ask: ask,
+				bid: bid,
+				time: klineTemp.OpenTime,
+			}
+		}
+		close(quoteChan)
+	}()
+	// 接收新報價後，更新數據
+	go func(){
+		nextIndex := make(map[string]int)
+		for quote := range quoteChan {
+			for _, interval := range intervals {
+				for i := nextIndex[interval]; i < len(a.klineTemp[interval]); i++ {
+					klineTemp := a.klineTemp[interval][i]
+					if klineTemp.CloseTime < quote.time { // 報價之前的K棒直接加入
+						a.kline[interval] = append([]*binance.Kline{klineTemp}, a.kline[interval]...)
+					} else if klineTemp.OpenTime <= quote.time && klineTemp.CloseTime > quote.time { // 當前K棒
+						a.kline[interval] = append([]*binance.Kline{klineTemp}, a.kline[interval]...)
+					} else {
+						nextIndex[interval] = i
+						break
+					}
+				}
+			}
+			// 新報價
+			a.ask = quote.ask
+			a.bid = quote.bid
+			a.tick <- struct{}{}
 		}
 	}()
 	// 每個1m收盤價(支援每個報價? 時戳:價格) 觸發tick -> 更新數據: 
