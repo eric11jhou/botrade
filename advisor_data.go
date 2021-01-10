@@ -217,6 +217,7 @@ func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
 			if err != nil {
 				log.Panic("quote error")
 			}
+			fmt.Println(ask)
 			quoteChan <- &quote{
 				ask: ask,
 				bid: bid,
@@ -229,6 +230,7 @@ func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
 	go func(){
 		nextIndex := make(map[string]int)
 		for quote := range quoteChan {
+			fmt.Println("---", quote.ask)
 			for _, interval := range intervals {
 				for i := nextIndex[interval]; i < len(a.klineTemp[interval]); i++ {
 					klineTemp := a.klineTemp[interval][i]
