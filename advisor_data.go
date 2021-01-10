@@ -42,7 +42,7 @@ func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64
 			Interval(interval).
 			StartTime(startTime_).
 			EndTime(endTime).
-			Limit(10).
+			Limit(1000).
 			Do(context.Background())
 			if err != nil {
 				log.Fatal(err)
@@ -234,7 +234,7 @@ func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
 					klineTemp := a.klineTemp[interval][i]
 					if klineTemp.CloseTime < quote.time { // 報價之前的K棒直接加入
 						a.kline[interval] = append([]*binance.Kline{klineTemp}, a.kline[interval]...)
-					} else if klineTemp.OpenTime <= quote.time && klineTemp.CloseTime > quote.time { // 當前K棒
+					} else if klineTemp.OpenTime <= quote.time && klineTemp.CloseTime > quote.time { // 當前K棒，未來應支援當前K棒變動
 						a.kline[interval] = append([]*binance.Kline{klineTemp}, a.kline[interval]...)
 					} else {
 						nextIndex[interval] = i
