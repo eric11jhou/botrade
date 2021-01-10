@@ -35,8 +35,8 @@ func (a *Advisor) loadHistoryDataTesting(symbol string, startTime, endTime int64
 	
 	requestTime := 0
 	for _, interval := range intervals {
-		startTime_ := startTime - 1000*60*60*24*30*6 // 抓取回測起始時間多久之前的K棒
-		total := (endTime - startTime) / 60000 / a.getMin(interval) 
+		startTime_ := startTime// - 1000*60*60*24*30*6 // 抓取回測起始時間多久之前的K棒
+		total := (endTime - startTime_) / 60000 / a.getMin(interval) 
 		status := fmt.Sprintf("(%d/%d)", 0, total)
 		fmt.Printf("下載 %-4sK線: %20s", interval, status)
 		klinesTemp := make([]*binance.Kline, 0)
