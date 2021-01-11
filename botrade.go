@@ -31,6 +31,7 @@ func NewBot(apiKey, secretKey string) *Bot {
 			apiKey: apiKey,
 			secretKey: secretKey,
 			tick: make(chan struct{}),
+			nextTick: make(chan struct{}),
 			kline: make(map[string][]*binance.Kline),
 			klineTemp: make(map[string][]*binance.Kline),
 		},
@@ -58,6 +59,7 @@ func (b *Bot) Testing(symbol string, s Strategy, startTime, endTime int64) {
 	s.OnInit()
 	b.advisor.startTickTesting(symbol, startTime, endTime)
 	for {
+		b.advisor.nextTick <- struct{}{}
 		<- b.advisor.tick
 		fmt.Println("tick")
 		s.OnTick()

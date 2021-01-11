@@ -12,6 +12,7 @@ type Advisor struct {
 	apiKey string
 	secretKey string
 	tick chan struct{} // 新報價觸發通道
+	nextTick chan struct{} // 可運算下一個tick
 
 	ask float64
 	bid float64

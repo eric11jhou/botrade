@@ -217,7 +217,6 @@ func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
 			if err != nil {
 				log.Panic("quote error")
 			}
-			fmt.Println(ask)
 			quoteChan <- &quote{
 				ask: ask,
 				bid: bid,
@@ -230,7 +229,7 @@ func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
 	go func(){
 		nextIndex := make(map[string]int)
 		for quote := range quoteChan {
-			fmt.Println("---", quote.ask)
+			<- a.nextTick
 			for _, interval := range intervals {
 				for i := nextIndex[interval]; i < len(a.klineTemp[interval]); i++ {
 					klineTemp := a.klineTemp[interval][i]
@@ -244,13 +243,11 @@ func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
 					}
 				}
 			}
-			fmt.Println("---*")
 			// 新報價
 			a.ask = quote.ask
 			a.bid = quote.bid
 			a.tick <- struct{}{}
 		}
-		fmt.Println("quote end")
 	}()
 	// 每個1m收盤價(支援每個報價? 時戳:價格) 觸發tick -> 更新數據: 
 	// if tick.time > kline[0].CloseTime -> 更新此K線(從暫存載入)
