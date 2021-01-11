@@ -1,6 +1,7 @@
 package botrade
 
 import (
+	"fmt"
 	"github.com/adshao/go-binance/v2"
 	log "github.com/sirupsen/logrus"
 )
@@ -58,6 +59,7 @@ func (b *Bot) Testing(symbol string, s Strategy, startTime, endTime int64) {
 	b.advisor.startTickTesting(symbol, startTime, endTime)
 	for {
 		<- b.advisor.tick
+		fmt.Println("tick")
 		s.OnTick()
 	}
 }
