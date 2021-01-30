@@ -1,6 +1,7 @@
 package botrade
 
 import (
+	"sync"
 	"strconv"
 	"github.com/adshao/go-binance/v2"
 	log "github.com/sirupsen/logrus"
@@ -12,13 +13,19 @@ type Advisor struct {
 	apiKey string
 	secretKey string
 	tick chan struct{} // 新報價觸發通道
-	nextTick chan struct{} // 可運算下一個tick
+	nextTick chan struct{} // **回測用 跑回測時可運算下一個tick的訊號
+	mutex sync.Mutex // **實倉用 跑實倉的kline互斥鎖
 
 	ask float64
 	bid float64
+	time int64
 	// key: interval 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M
-	kline map[string][]*binance.Kline
-	klineTemp map[string][]*binance.Kline
+	kline map[string][]*binance.Kline // 目前K線
+	klineTemp map[string][]*binance.Kline // **回測用 暫存所有K線
+
+	orderIDCount int64 // **回測用訂單ID
+	openOrders []*binance.Order // 掛單
+	orders []*binance.Order // 訂單
 }
 
 func (a *Advisor) Ask() float64 {

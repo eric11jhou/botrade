@@ -102,6 +102,7 @@ func (a *Advisor) startTick(symbol string) {
 	go func(){
 		{
 			wsKlineHandler := func(event *binance.WsKlineEvent) {
+				a.mutex.Lock()
 				for k, v := range a.kline {
 					if event.Kline.StartTime > v[0].CloseTime { // 此interval已收盤
 						client := binance.NewClient(a.apiKey, a.secretKey)
@@ -160,6 +161,7 @@ func (a *Advisor) startTick(symbol string) {
 						}
 					}
 				}
+				a.mutex.Unlock()
 			}
 			errHandler := func(err error) {
 				log.Error(err)
@@ -181,6 +183,7 @@ func (a *Advisor) startTick(symbol string) {
 				} else {
 					a.bid = bid
 				}
+				a.time = event.Time
 				a.tick <- struct{}{}
 			}
 			errHandler := func(err error) {
@@ -198,6 +201,7 @@ func (a *Advisor) startTick(symbol string) {
 type quote struct {
 	ask float64
 	bid float64
+	volume float64
 	time int64
 }
 
@@ -217,9 +221,14 @@ func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
 			if err != nil {
 				log.Panic("quote error")
 			}
+			volume, err := strconv.ParseFloat(klineTemp.Volume, 64)
+			if err != nil {
+				log.Panic("quote error")
+			}
 			quoteChan <- &quote{
 				ask: ask,
 				bid: bid,
+				volume: volume,
 				time: klineTemp.OpenTime,
 			}
 		}
@@ -246,6 +255,7 @@ func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
 			// 新報價
 			a.ask = quote.ask
 			a.bid = quote.bid
+			a.time = quote.time
 			a.tick <- struct{}{}
 		}
 	}()

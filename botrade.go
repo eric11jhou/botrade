@@ -1,7 +1,6 @@
 package botrade
 
 import (
-	"fmt"
 	"github.com/adshao/go-binance/v2"
 	log "github.com/sirupsen/logrus"
 )
@@ -34,6 +33,8 @@ func NewBot(apiKey, secretKey string) *Bot {
 			nextTick: make(chan struct{}),
 			kline: make(map[string][]*binance.Kline),
 			klineTemp: make(map[string][]*binance.Kline),
+			openOrders: make([]*binance.Order, 0),
+			orders: make([]*binance.Order, 0),
 		},
 	}
 }
@@ -47,7 +48,9 @@ func (b *Bot) Trading(symbol string, s Strategy) {
 	b.advisor.startTick(symbol)
 	for {
 		<- b.advisor.tick
+		b.advisor.mutex.Lock()
 		s.OnTick()
+		b.advisor.mutex.Unlock()
 	}
 }
 
@@ -61,7 +64,7 @@ func (b *Bot) Testing(symbol string, s Strategy, startTime, endTime int64) {
 	for {
 		b.advisor.nextTick <- struct{}{}
 		<- b.advisor.tick
-		fmt.Println("tick")
+		b.advisor.orderCheckExecTesting()
 		s.OnTick()
 	}
 }
