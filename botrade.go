@@ -30,7 +30,7 @@ func NewBot(apiKey, secretKey string) *Bot {
 			apiKey: apiKey,
 			secretKey: secretKey,
 			tick: make(chan struct{}),
-			nextTick: make(chan struct{}),
+			nextTick: make(chan struct{}, 1),
 			kline: make(map[string][]*binance.Kline),
 			klineTemp: make(map[string][]*binance.Kline),
 			openOrders: make([]*binance.Order, 0),
@@ -61,10 +61,10 @@ func (b *Bot) Testing(symbol string, s Strategy, startTime, endTime int64) {
 	b.advisor.loadHistoryDataTesting(symbol, startTime, endTime)
 	s.OnInit()
 	b.advisor.startTickTesting(symbol, startTime, endTime)
-	for {
-		b.advisor.nextTick <- struct{}{}
-		<- b.advisor.tick
+	b.advisor.nextTick <- struct{}{}
+	for _ = range b.advisor.tick{
 		b.advisor.orderCheckExecTesting()
 		s.OnTick()
+		b.advisor.nextTick <- struct{}{}
 	}
 }

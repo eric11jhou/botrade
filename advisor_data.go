@@ -258,6 +258,7 @@ func (a *Advisor) startTickTesting(symbol string, startTime, endTime int64) {
 			a.time = quote.time
 			a.tick <- struct{}{}
 		}
+		close(a.tick)
 	}()
 	// 每個1m收盤價(支援每個報價? 時戳:價格) 觸發tick -> 更新數據: 
 	// if tick.time > kline[0].CloseTime -> 更新此K線(從暫存載入)
