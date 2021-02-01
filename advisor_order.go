@@ -7,13 +7,13 @@ import (
 )
 
 type OrderCreateRequest struct {
-	symbol string
-	sideType binance.SideType
-	orderType binance.OrderType
-	timeInForce *binance.TimeInForceType
-	quantity *float64
-	price *float64
-	stopPrice *float64
+	Symbol string
+	SideType binance.SideType
+	OrderType binance.OrderType
+	TimeInForce *binance.TimeInForceType
+	Quantity *float64
+	Price *float64
+	StopPrice *float64
 }
 
 // 下單
@@ -30,127 +30,127 @@ func (a *Advisor) orderCreate(o *OrderCreateRequest) (*binance.CreateOrderRespon
 }
 
 func (a *Advisor) orderCreateTesting(o *OrderCreateRequest) (*binance.CreateOrderResponse, error) {
-	switch o.orderType {
+	switch o.OrderType {
 	case binance.OrderTypeLimit:
-		if o.price == nil {
+		if o.Price == nil {
 			return nil, fmt.Errorf("price required")
 		}
-		switch o.sideType {
+		switch o.SideType {
 		case binance.SideTypeBuy:
-			if a.ask >= *o.price {
+			if a.ask >= *o.Price {
 				return nil, fmt.Errorf("invalid price")
 			}
 		case binance.SideTypeSell:
-			if a.bid <= *o.price {
+			if a.bid <= *o.Price {
 				return nil, fmt.Errorf("invalid price")
 			}
 		}
 	case binance.OrderTypeMarket:
 	case binance.OrderTypeLimitMaker:
 	case binance.OrderTypeStopLoss:
-		if o.stopPrice == nil {
+		if o.StopPrice == nil {
 			return nil, fmt.Errorf("stop price required")
 		}
-		switch o.sideType {
+		switch o.SideType {
 		case binance.SideTypeBuy:
-			if a.ask <= *o.stopPrice {
+			if a.ask <= *o.StopPrice {
 				return nil, fmt.Errorf("invalid stop price")
 			}
 		case binance.SideTypeSell:
-			if a.bid >= *o.stopPrice {
+			if a.bid >= *o.StopPrice {
 				return nil, fmt.Errorf("invalid stop price")
 			}
 		}
 	case binance.OrderTypeStopLossLimit:
-		if o.price == nil {
+		if o.Price == nil {
 			return nil, fmt.Errorf("price required")
 		}
-		if o.stopPrice == nil {
+		if o.StopPrice == nil {
 			return nil, fmt.Errorf("stop price required")
 		}
-		switch o.sideType {
+		switch o.SideType {
 		case binance.SideTypeBuy:
-			if a.ask <= *o.stopPrice {
+			if a.ask <= *o.StopPrice {
 				return nil, fmt.Errorf("invalid stop price")
 			}
-			if *o.price <= *o.stopPrice {
+			if *o.Price <= *o.StopPrice {
 				return nil, fmt.Errorf("invalid price")
 			}
 		case binance.SideTypeSell:
-			if a.bid >= *o.stopPrice {
+			if a.bid >= *o.StopPrice {
 				return nil, fmt.Errorf("invalid stop price")
 			}
-			if *o.price >= *o.stopPrice {
+			if *o.Price >= *o.StopPrice {
 				return nil, fmt.Errorf("invalid price")
 			}
 		}
 	case binance.OrderTypeTakeProfit:
-		if o.stopPrice == nil {
+		if o.StopPrice == nil {
 			return nil, fmt.Errorf("stop price required")
 		}
-		switch o.sideType {
+		switch o.SideType {
 		case binance.SideTypeBuy:
-			if a.ask >= *o.stopPrice {
+			if a.ask >= *o.StopPrice {
 				return nil, fmt.Errorf("invalid stop price")
 			}
 		case binance.SideTypeSell:
-			if a.bid <= *o.stopPrice {
+			if a.bid <= *o.StopPrice {
 				return nil, fmt.Errorf("invalid stop price")
 			}
 		}
 	case binance.OrderTypeTakeProfitLimit:
-		if o.price == nil {
+		if o.Price == nil {
 			return nil, fmt.Errorf("price required")
 		}
-		if o.stopPrice == nil {
+		if o.StopPrice == nil {
 			return nil, fmt.Errorf("stop price required")
 		}
-		switch o.sideType {
+		switch o.SideType {
 		case binance.SideTypeBuy:
-			if a.ask >= *o.stopPrice {
+			if a.ask >= *o.StopPrice {
 				return nil, fmt.Errorf("invalid stop price")
 			}
-			if *o.price <= *o.stopPrice {
+			if *o.Price <= *o.StopPrice {
 				return nil, fmt.Errorf("invalid price")
 			}
 		case binance.SideTypeSell:
-			if a.bid <= *o.stopPrice {
+			if a.bid <= *o.StopPrice {
 				return nil, fmt.Errorf("invalid stop price")
 			}
-			if *o.price >= *o.stopPrice {
+			if *o.Price >= *o.StopPrice {
 				return nil, fmt.Errorf("invalid price")
 			}
 		}
 	}
 	a.orderIDCount++
 	orderRes := &binance.CreateOrderResponse{
-		Symbol: o.symbol,
+		Symbol: o.Symbol,
 		OrderID: a.orderIDCount,
-		Type: o.orderType,
-		Side: o.sideType,
+		Type: o.OrderType,
+		Side: o.SideType,
 	}
 	order := &binance.Order{
-		Symbol: o.symbol,
+		Symbol: o.Symbol,
 		OrderID: a.orderIDCount,
 		Status: binance.OrderStatusTypeNew,
-		Type: o.orderType,
-		Side: o.sideType,
+		Type: o.OrderType,
+		Side: o.SideType,
 		Time: a.time,
 	}
-	if o.quantity != nil {
-		orderRes.OrigQuantity = strconv.FormatFloat(*o.quantity, 'f', -1, 64)
+	if o.Quantity != nil {
+		orderRes.OrigQuantity = strconv.FormatFloat(*o.Quantity, 'f', -1, 64)
 		order.OrigQuantity = orderRes.OrigQuantity
 	}
-	if o.price != nil {
-		orderRes.Price = strconv.FormatFloat(*o.price, 'f', -1, 64)
+	if o.Price != nil {
+		orderRes.Price = strconv.FormatFloat(*o.Price, 'f', -1, 64)
 		order.Price = orderRes.Price
 	}
-	if o.timeInForce != nil {
-		orderRes.TimeInForce = *o.timeInForce
-		order.TimeInForce = *o.timeInForce
+	if o.TimeInForce != nil {
+		orderRes.TimeInForce = *o.TimeInForce
+		order.TimeInForce = *o.TimeInForce
 	}
-	if o.stopPrice != nil {
-		order.StopPrice = strconv.FormatFloat(*o.stopPrice, 'f', -1, 64)
+	if o.StopPrice != nil {
+		order.StopPrice = strconv.FormatFloat(*o.StopPrice, 'f', -1, 64)
 	}
 	a.openOrders = append([]*binance.Order{order}, a.openOrders...)
 	return orderRes, nil
