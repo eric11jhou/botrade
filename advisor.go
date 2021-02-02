@@ -10,6 +10,8 @@ import (
 // Advisor 可取得各種訊息與交易功能
 type Advisor struct {
 	trade bool // true實倉交易, false策略測試
+	balance float64 // **回測用 回測初始資金
+	currencyVolume float64 // **回測用 幣持有數量
 	apiKey string
 	secretKey string
 	tick chan struct{} // 新報價觸發通道
@@ -34,6 +36,11 @@ func (a *Advisor) Ask() float64 {
 
 func (a *Advisor) Bid() float64 {
 	return a.bid
+}
+
+// 算出回測的帳戶淨值
+func (a *Advisor) equity() float64 {
+	return a.balance + a.currencyVolume * (a.ask + a.bid) / 2
 }
 
 // 取得K棒開盤價

@@ -264,6 +264,7 @@ func (a *Advisor) orderCheckExecTesting() {
 		o := a.openOrders[i]
 		oPrice, _ := strconv.ParseFloat(o.Price, 64)
 		oStopPrice, _ := strconv.ParseFloat(o.StopPrice, 64)
+		oQuantity, _ := strconv.ParseFloat(o.OrigQuantity, 64)
 		switch o.Type {
 		case binance.OrderTypeLimit:
 			switch o.Side {
@@ -275,6 +276,8 @@ func (a *Advisor) orderCheckExecTesting() {
 					o.UpdateTime = a.time
 					a.orders = append([]*binance.Order{o}, a.orders...)
 					a.openOrders = append(a.openOrders[:i], a.openOrders[i+1:]...)
+					a.balance -= oQuantity * oPrice
+					a.currencyVolume += oQuantity
 					i--
 				}
 			case binance.SideTypeSell:
@@ -285,6 +288,8 @@ func (a *Advisor) orderCheckExecTesting() {
 					o.UpdateTime = a.time
 					a.orders = append([]*binance.Order{o}, a.orders...)
 					a.openOrders = append(a.openOrders[:i], a.openOrders[i+1:]...)
+					a.balance += oQuantity * oPrice
+					a.currencyVolume -= oQuantity
 					i--
 				}
 			}
@@ -292,8 +297,12 @@ func (a *Advisor) orderCheckExecTesting() {
 			switch  o.Side {
 			case binance.SideTypeBuy:
 				o.Price = strconv.FormatFloat(a.ask, 'f', -1, 64)
+				a.balance -= oQuantity * a.ask
+				a.currencyVolume += oQuantity
 			case binance.SideTypeSell:
 				o.Price = strconv.FormatFloat(a.bid, 'f', -1, 64)
+				a.balance += oQuantity * a.bid
+				a.currencyVolume -= oQuantity
 			}
 			o.ExecutedQuantity = o.OrigQuantity
 			o.Status = binance.OrderStatusTypeFilled

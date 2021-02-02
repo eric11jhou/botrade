@@ -1,6 +1,7 @@
 package botrade
 
 import (
+	"fmt"
 	"github.com/adshao/go-binance/v2"
 	log "github.com/sirupsen/logrus"
 )
@@ -55,7 +56,8 @@ func (b *Bot) Trading(symbol string, s Strategy) {
 }
 
 // Testing 開始回測
-func (b *Bot) Testing(symbol string, s Strategy, startTime, endTime int64) {
+func (b *Bot) Testing(balance float64, symbol string, s Strategy, startTime, endTime int64) {
+	b.advisor.balance = balance
 	b.advisor.trade = false
 	s.SetAdvisor(b.advisor)
 	b.advisor.loadHistoryDataTesting(symbol, startTime, endTime)
@@ -67,4 +69,5 @@ func (b *Bot) Testing(symbol string, s Strategy, startTime, endTime int64) {
 		s.OnTick()
 		b.advisor.nextTick <- struct{}{}
 	}
+	fmt.Println(b.advisor.equity())
 }
