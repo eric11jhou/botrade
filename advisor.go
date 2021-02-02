@@ -12,6 +12,8 @@ type Advisor struct {
 	trade bool // true實倉交易, false策略測試
 	balance float64 // **回測用 回測初始資金
 	currencyVolume float64 // **回測用 幣持有數量
+	lastEquityHigh float64 // **回測用 上次最高淨值
+	drawdown float64 // **回測用 回撤率
 	apiKey string
 	secretKey string
 	tick chan struct{} // 新報價觸發通道

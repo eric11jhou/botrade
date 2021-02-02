@@ -69,5 +69,10 @@ func (b *Bot) Testing(balance float64, symbol string, s Strategy, startTime, end
 		s.OnTick()
 		b.advisor.nextTick <- struct{}{}
 	}
-	fmt.Println(b.advisor.equity())
+	equity := b.advisor.equity()
+	fmt.Printf("==========Report==========\n")
+	fmt.Printf("Balance:\t%.2f\n", balance)
+	fmt.Printf("Drawdown:\t%.2f%%\n", b.advisor.drawdown*100)
+	fmt.Printf("Profit:\t\t%.2f\n", equity - balance)
+	fmt.Printf("==========================\n")
 }

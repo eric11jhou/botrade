@@ -279,6 +279,11 @@ func (a *Advisor) orderCheckExecTesting() {
 					a.balance -= oQuantity * oPrice
 					a.currencyVolume += oQuantity
 					i--
+					if equity := a.equity(); equity > a.lastEquityHigh {
+						a.lastEquityHigh = equity
+					} else if drawdown := (a.lastEquityHigh - equity) / a.lastEquityHigh; drawdown > a.drawdown {
+						a.drawdown = drawdown
+					}
 				}
 			case binance.SideTypeSell:
 				if a.bid >= oPrice {
@@ -291,6 +296,11 @@ func (a *Advisor) orderCheckExecTesting() {
 					a.balance += oQuantity * oPrice
 					a.currencyVolume -= oQuantity
 					i--
+					if equity := a.equity(); equity > a.lastEquityHigh {
+						a.lastEquityHigh = equity
+					} else if drawdown := (a.lastEquityHigh - equity) / a.lastEquityHigh; drawdown > a.drawdown {
+						a.drawdown = drawdown
+					}
 				}
 			}
 		case binance.OrderTypeMarket:
@@ -310,6 +320,11 @@ func (a *Advisor) orderCheckExecTesting() {
 			a.orders = append([]*binance.Order{o}, a.orders...)
 			a.openOrders = append(a.openOrders[:i], a.openOrders[i+1:]...)
 			i--
+			if equity := a.equity(); equity > a.lastEquityHigh {
+				a.lastEquityHigh = equity
+			} else if drawdown := (a.lastEquityHigh - equity) / a.lastEquityHigh; drawdown > a.drawdown {
+				a.drawdown = drawdown
+			}
 		case binance.OrderTypeLimitMaker:
 		case binance.OrderTypeStopLoss:
 			switch  o.Side {
