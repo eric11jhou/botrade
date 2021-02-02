@@ -47,12 +47,12 @@ func (b *Bot) Trading(symbol string, s Strategy) {
 	b.advisor.loadHistoryData(symbol)
 	s.OnInit()
 	b.advisor.startTick(symbol)
-	for {
-		<- b.advisor.tick
+	for _ = range b.advisor.tick {
 		b.advisor.mutex.Lock()
 		s.OnTick()
 		b.advisor.mutex.Unlock()
 	}
+	s.OnDeinit()
 }
 
 // Testing 開始回測
@@ -69,6 +69,7 @@ func (b *Bot) Testing(balance float64, symbol string, s Strategy, startTime, end
 		s.OnTick()
 		b.advisor.nextTick <- struct{}{}
 	}
+	s.OnDeinit()
 	equity := b.advisor.equity()
 	fmt.Printf("==========Report==========\n")
 	fmt.Printf("Balance:\t%.2f\n", balance)
